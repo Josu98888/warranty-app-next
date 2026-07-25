@@ -1,120 +1,101 @@
-import type { productT } from "../types";
-import { useProductStore } from "../store";
-import { useWarrantyStore } from "../../warranty/store";
+import { useState, useMemo } from 'react'
+import { differenceInDays, parseISO } from 'date-fns'
+import { useProductStore } from '../store'
+import { useWarrantyStore } from '@/features/warranty/store'
+import type { productT } from '../types'
+import type { warrantyT } from '@/features/warranty/types'
 
-const seedProducts: productT[] = [
-  {
-    name: "iPhone 15",
-    category: "Electronic",
-    price: 1200,
-    importance: "High",
-    purchaseDate: "2024-01-15",
-    durationMonths: 12,
-  },
-  {
-    name: "Lavadora Samsung",
-    category: "Appliance",
-    price: 800,
-    importance: "Medium",
-    purchaseDate: "2025-03-01",
-    durationMonths: 6,
-  },
-  {
-    name: "Cafetera Nespresso",
-    category: "Appliance",
-    price: 200,
-    importance: "Low",
-    purchaseDate: "2025-07-01",
-    durationMonths: 8,
-  },
-  {
-    name: "Filtro de Aceite",
-    category: "Spare-part",
-    price: 30,
-    importance: "Low",
-    purchaseDate: "2026-03-01",
-    durationMonths: 4,
-  },
-  {
-    name: "Zapatillas Nike",
-    category: "Clothing",
-    price: 150,
-    importance: "Medium",
-    purchaseDate: "2026-02-15",
-    durationMonths: 5,
-  },
-  {
-    name: "Taladro Bosch",
-    category: "Tools",
-    price: 250,
-    importance: "Medium",
-    purchaseDate: "2025-12-01",
-    durationMonths: 7,
-  },
-  {
-    name: "MacBook Pro",
-    category: "Electronic",
-    price: 2500,
-    importance: "High",
-    purchaseDate: "2024-06-15",
-    durationMonths: 36,
-  },
-  {
-    name: "Abrigo Invierno",
-    category: "Clothing",
-    price: 90,
-    importance: "Low",
-    purchaseDate: "2026-01-01",
-    durationMonths: 12,
-  },
-  {
-    name: "Auriculares Sony",
-    category: "Electronic",
-    price: 350,
-    importance: "Medium",
-    purchaseDate: "2026-05-01",
-    durationMonths: 6,
-  },
-  {
-    name: "Manual TypeScript",
-    category: "Book",
-    price: 45,
-    importance: "Low",
-    purchaseDate: "2026-06-20",
-    durationMonths: 3,
-  },
-  {
-    name: "Silla Ergonómica",
-    category: "Other",
-    price: 600,
-    importance: "Medium",
-    purchaseDate: "2026-04-01",
-    durationMonths: 8,
-  },
-  {
-    name: "Juego Llaves Allen",
-    category: "Tools",
-    price: 25,
-    importance: "Low",
-    purchaseDate: "2025-08-15",
-    durationMonths: 6,
-  },
-];
+const WARRANTY_GROUP = {
+  EXPIRED: 0,
+  EXPIRING_SOON: 1,
+  VALID: 2,
+} as const
 
-export function seedTestData() {
-  const { products, addProduct } = useProductStore.getState();
-  const { evaluateWarranty } = useWarrantyStore.getState();
+const EXPIRING_SOON_DAYS = 30 as const
 
-  if (products.length > 0) return;
+const SORT_ORDER = {
+  BEFORE: -1,
+  EQUAL: 0,
+  AFTER: 1,
+} as const
 
-  seedProducts.forEach((productSeed) => {
-    const newProduct = { ...productSeed, id: crypto.randomUUID() };
-    addProduct(newProduct);
-    evaluateWarranty(newProduct);
-  });
-}   
+export type ProductRow = productT & { warranty?: warrantyT }
 
-export function clearAllData() {
-  useProductStore.setState({ products: [] });
-  useWarrantyStore.setState({ warranties: [] });
+export function useProductFilters() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+
+  const products = useProductStore((storeState) => storeState.products)
+  const warranties = useWarrantyStore((storeState) => storeState.warranties)
+
+  const filteredProductsWithWarranty = useMemo(() => {
+    let matchingProducts = products
+
+    if (searchQuery.trim()) {
+      const searchQueryLowercased = searchQuery.trim().toLowerCase()
+      matchingProducts = matchingProducts.filter(
+        (product) => product.name.toLowerCase().includes(searchQueryLowercased)
+      )
+    }
+
+    if (categoryFilter) {
+      matchingProducts = matchingProducts.filter(
+        (product) => product.category === categoryFilter
+      )
+    }
+
+    const productRowsWithWarranty: ProductRow[] = matchingProducts.map((product) => ({
+      ...product,
+      warranty: warranties.find((warranty) => warranty.id === product.id),
+    }))
+
+    return productRowsWithWarranty.sort((firstProduct, secondProduct) => {
+      const firstExpiryDate = firstProduct.warranty?.expiryDate
+      const secondExpiryDate = secondProduct.warranty?.expiryDate
+
+      const firstRemainingDays = firstExpiryDate
+        ? differenceInDays(parseISO(firstExpiryDate), new Date())
+        : Infinity
+      const secondRemainingDays = secondExpiryDate
+        ? differenceInDays(parseISO(secondExpiryDate), new Date())
+        : Infinity
+
+      const firstGroup = firstRemainingDays <= 0
+        ? WARRANTY_GROUP.EXPIRED
+        : firstRemainingDays <= EXPIRING_SOON_DAYS
+          ? WARRANTY_GROUP.EXPIRING_SOON
+          : WARRANTY_GROUP.VALID
+      const secondGroup = secondRemainingDays <= 0
+        ? WARRANTY_GROUP.EXPIRED
+        : secondRemainingDays <= EXPIRING_SOON_DAYS
+          ? WARRANTY_GROUP.EXPIRING_SOON
+          : WARRANTY_GROUP.VALID
+
+      if (firstGroup !== secondGroup) return firstGroup - secondGroup
+
+      if (firstExpiryDate && secondExpiryDate) return firstExpiryDate.localeCompare(secondExpiryDate)
+      if (firstExpiryDate) return SORT_ORDER.BEFORE
+      if (secondExpiryDate) return SORT_ORDER.AFTER
+      return SORT_ORDER.EQUAL
+    })
+  }, [products, warranties, searchQuery, categoryFilter])
+
+  const resetFilters = () => {
+    setSearchQuery('')
+    setCategoryFilter('')
+  }
+
+  const activeFilterCount = (searchQuery ? 1 : 0) + (categoryFilter ? 1 : 0)
+
+  return {
+    filteredProductsWithWarranty,
+    searchQuery,
+    setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    resetFilters,
+    totalProductCount: products.length,
+    filteredProductCount: filteredProductsWithWarranty.length,
+    activeFilterCount,
+  }
 }
