@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     description:
       "Registrá un producto nuevo con fecha de compra, categoría, precio, duración de garantía y comprobante para hacer seguimiento automático del vencimiento.",
     type: "website",
+    locale: "es_AR",
+    siteName: "Warranty Manager",
   },
 };
 

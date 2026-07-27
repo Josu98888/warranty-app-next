@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     description:
       "Consultá el estado de tus productos registrados: filtrá por nombre o categoría y mirá qué garantías siguen vigentes, están por vencer o ya vencieron.",
     type: "website",
+    locale: "es_AR",
+    siteName: "Warranty Manager",
   },
 };
 
