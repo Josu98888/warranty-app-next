@@ -13,7 +13,7 @@ export default function RemindersView() {
 
   return (
     <section className="p-6">
-      <h1 className="text-2xl font-bold mb-2">Recordatorios</h1>
+      <h2 className="text-2xl font-bold mb-2">Recordatorios</h2>
       <p className="text-slate-500 text-sm mb-6">
         Garantías próximas a vencer o ya vencidas
       </p>
