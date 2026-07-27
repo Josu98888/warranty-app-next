@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProductRow } from "@/features/products/hooks/useProducts";
 import { CATEGORIES } from "../categories";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
@@ -21,11 +21,13 @@ export default function ProductsTable({
     Math.ceil(productsWithWarranty.length / PRODUCTS_PER_PAGE),
   );
 
-  useEffect(() => {
-    setCurrentPage((previousPage) =>
-      previousPage > totalPages ? 1 : previousPage,
-    );
-  }, [productsWithWarranty.length, totalPages]);
+  const [prevTotalPages, setPrevTotalPages] = useState(totalPages);
+  if (totalPages !== prevTotalPages) {
+    setPrevTotalPages(totalPages);
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }
 
   const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
 
