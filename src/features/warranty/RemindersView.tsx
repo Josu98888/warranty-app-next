@@ -39,7 +39,7 @@ export default function RemindersView() {
               {p.receipt && (
                 <img
                   src={p.receipt}
-                  alt="Comprobante"
+                  alt={`Comprobante de ${p.name}`}
                   className="mt-2 h-20 rounded border"
                 />
               )}
