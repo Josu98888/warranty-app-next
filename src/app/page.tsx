@@ -1,4 +1,6 @@
 "use client";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import ProductFilters from "@/features/products/components/ProductFilters"
 import ProductsTable from "@/features/products/components/ProductsTable";
@@ -7,6 +9,17 @@ import { useProductStore } from "@/features/products/store";
 import SummaryCards from "@/features/home/SummaryCards";
 
 export default function HomePage () {
+    return (
+        <Suspense>
+            <HomeContent />
+        </Suspense>
+    )
+}
+
+function HomeContent () {
+
+    const searchParams = useSearchParams()
+    const initialSearchQuery = searchParams.get("q") ?? ""
 
     const totalProducts = useProductStore((storeState) => storeState.products.length)
 
@@ -18,7 +31,11 @@ export default function HomePage () {
         totalProductCount,
         filteredProductCount,
         activeFilterCount,
-    } = useProductFilters()
+    } = useProductFilters(initialSearchQuery)
+
+    useEffect(() => {
+        setSearchQuery(initialSearchQuery)
+    }, [initialSearchQuery])
 
     return(
         <main className="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto">

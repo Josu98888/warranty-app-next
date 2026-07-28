@@ -21,8 +21,8 @@ const SORT_ORDER = {
 
 export type ProductRow = productT & { warranty?: warrantyT }
 
-export function useProductFilters() {
-  const [searchQuery, setSearchQuery] = useState('')
+export function useProductFilters(initialSearchQuery: string = '') {
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
   const [categoryFilter, setCategoryFilter] = useState('')
 
   const products = useProductStore((storeState) => storeState.products)
