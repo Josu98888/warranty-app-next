@@ -1,8 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import toast from "react-hot-toast";
 import type { ProductRow } from "@/features/products/hooks/useProducts";
 import { CATEGORIES } from "../categories";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
+import { ROUTES } from "@/shared/utils/route";
+import { useProductStore } from "@/features/products/store";
+import { useWarrantyStore } from "@/features/warranty/store";
 
 interface ProductsTableProps {
   productsWithWarranty: ProductRow[];
@@ -15,6 +20,22 @@ export default function ProductsTable({
 }: ProductsTableProps) {
   const PRODUCTS_PER_PAGE = 6;
   const [currentPage, setCurrentPage] = useState(1);
+
+  const deleteProduct = useProductStore((state) => state.deleteProduct);
+  const removeWarranty = useWarrantyStore((state) => state.removeWarranty);
+
+  const handleDelete = (id: string | undefined, name: string) => {
+    if (!id) return;
+
+    const confirmed = window.confirm(
+      `¿Seguro que querés eliminar "${name}"? Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+
+    deleteProduct(id);
+    removeWarranty(id);
+    toast.success("Producto eliminado", { duration: 3000 });
+  };
 
   const totalPages = Math.max(
     1,
@@ -162,6 +183,9 @@ export default function ProductsTable({
             <th className="px-2 sm:px-4 py-2 sm:py-4 font-semibold">
               Comprobante
             </th>
+            <th className="px-2 sm:px-4 py-2 sm:py-4 font-semibold">
+              Acciones
+            </th>
           </tr>
         </thead>
 
@@ -225,6 +249,26 @@ export default function ProductsTable({
                       Sin comprobante
                     </span>
                   )}
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-4">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`${ROUTES.EDIT_WARRANTY}/${productRow.id}`}
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap"
+                    >
+                      Editar
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(productRow.id, productRow.name)
+                      }
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 whitespace-nowrap"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
