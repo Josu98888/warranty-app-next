@@ -5,8 +5,15 @@ import Sidebar from "@/shared/components/layouts/Sidebar";
 import Topbar from "@/shared/components/layouts/Topbar";
 
 export const metadata: Metadata = {
-  title: "Warranty App",
+  // TODO: update with real production URL once the app is deployed to Vercel
+  metadataBase: new URL("https://warranty-app-next.vercel.app"),
+  title: "Warranty Manager",
   description: "Registro de garantías de tus productos",
+  openGraph: {
+    siteName: "Warranty Manager",
+    type: "website",
+    locale: "es_AR",
+  },
 };
 
 export default function RootLayout({

@@ -53,7 +53,7 @@ export default function Sidebar() {
               <ShieldCheck size={34} />
 
               <div>
-                <h2 className="font-bold text-lg">Warranty</h2>
+                <p className="font-bold text-lg">Warranty</p>
 
                 <p className="text-sm text-slate-300">Tracker</p>
               </div>

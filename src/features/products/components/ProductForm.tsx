@@ -190,3 +190,5 @@ export function ProductForm() {
         Agregar producto
       </button>
     </form>
+  );
+}
