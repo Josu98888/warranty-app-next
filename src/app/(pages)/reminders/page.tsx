@@ -2,9 +2,12 @@
 
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
+import { useReminderStore } from "@/features/warranty/reminderStore";
 
 export default function RemindersPage() {
   const { filteredProductsWithWarranty } = useProductFilters();
+
+  const { settings, updateSettings } = useReminderStore();
 
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
