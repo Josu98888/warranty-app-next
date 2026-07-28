@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Sidebar from "@/shared/components/layouts/Sidebar";
 import Topbar from "@/shared/components/layouts/Topbar";
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <Toaster position="top-right" />
         <main className="min-h-screen bg-[#F6F8FC]">
           <div className="flex flex-col lg:flex-row">
             <Sidebar />
