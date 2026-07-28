@@ -3,12 +3,45 @@
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/reminderStore";
+import { useState } from "react";
+import emailjs from "@emailjs/browser";
 
 export default function RemindersPage() {
   const { filteredProductsWithWarranty } = useProductFilters();
 
   const { settings, updateSettings } = useReminderStore();
 
+  const [email, setEmail] = useState(settings.email);
+
+  const [send30DaysBefore, setSend30DaysBefore] =
+    useState(settings.send30DaysBefore);
+
+  const [send7DaysBefore, setSend7DaysBefore] =
+    useState(settings.send7DaysBefore);
+
+  const [send1DayBefore, setSend1DayBefore] =
+    useState(settings.send1DayBefore);
+
+  const [sendOnExpiry, setSendOnExpiry] =
+    useState(settings.sendOnExpiry);
+  const sendEmail = async () => {
+    try {
+      const result = await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        {
+          to_email: email,
+          product_name: "Producto de prueba",
+          expiry_date: "01/09/2026",
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
+      );
+
+      console.log("Correo enviado:", result);
+    } catch (error: unknown) {
+      console.error(error);
+    }
+  };
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
 
@@ -38,33 +71,75 @@ export default function RemindersPage() {
 
         <input
           type="email"
-          placeholder="daina@gmail.com"
+          placeholder="correo@ejemplo.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full border rounded px-3 py-2 mb-4"
         />
 
         <div className="flex flex-col gap-2">
           <label>
-            <input type="checkbox" className="mr-2" />
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={send30DaysBefore}
+              onChange={(e) =>
+                setSend30DaysBefore(e.target.checked)
+              }
+            />
             Enviar 30 días antes
           </label>
 
           <label>
-            <input type="checkbox" className="mr-2" />
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={send7DaysBefore}
+              onChange={(e) =>
+                setSend7DaysBefore(e.target.checked)
+              }
+            />
             Enviar 7 días antes
           </label>
 
           <label>
-            <input type="checkbox" className="mr-2" />
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={send1DayBefore}
+              onChange={(e) =>
+                setSend1DayBefore(e.target.checked)
+              }
+            />
             Enviar 1 día antes
           </label>
 
           <label>
-            <input type="checkbox" className="mr-2" />
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={sendOnExpiry}
+              onChange={(e) =>
+                setSendOnExpiry(e.target.checked)
+              }
+            />
             Enviar cuando venza
           </label>
         </div>
+        <button
+          onClick={async () => {
+            updateSettings({
+              email,
+              send30DaysBefore,
+              send7DaysBefore,
+              send1DayBefore,
+              sendOnExpiry,
+            });
 
-        <button className="mt-4 px-4 py-2 rounded bg-blue-600 text-white">
+            await sendEmail();
+          }}
+          className="mt-4 px-4 py-2 rounded bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-all"
+        >
           Guardar
         </button>
       </div>
