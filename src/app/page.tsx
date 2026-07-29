@@ -1,3 +1,4 @@
+"use client";
 import type { Metadata } from "next";
 import HomeView from "@/features/home/HomeView";
 import { useProductStore } from "@/features/products/store";

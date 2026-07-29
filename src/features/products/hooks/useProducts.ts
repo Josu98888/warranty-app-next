@@ -1,3 +1,4 @@
+"use client";
 import { useState, useMemo } from 'react'
 import { differenceInDays, parseISO } from 'date-fns'
 import { useProductStore } from '../store'
