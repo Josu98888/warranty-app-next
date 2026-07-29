@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import HomeView from "@/features/home/HomeView";
-
+import { useProductStore } from "@/features/products/store";
+import { useProductFilters } from "@/features/products/hooks/useProducts";
+import  SummaryCards  from "@/features/home/SummaryCards";
+import ProductFilters from "@/features/products/components/ProductFilters";
+import {seedTestData} from "@/features/products/utils/seedData";
+import { clearAllData } from "@/features/products/utils/seedData";
+import ProductsTable from "@/features/products/components/ProductsTable";
 export default function HomePage() {
     const totalProducts = useProductStore((storeState) => storeState.products.length)
 
