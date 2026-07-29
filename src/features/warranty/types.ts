@@ -37,3 +37,15 @@ export type warrantyT = {
 
 // Re-exportamos para que el store no dependa de products/types directamente
 export type { productT };
+
+export type reminderSettingsT = {
+  email: string;
+
+  send30DaysBefore: boolean;
+
+  send7DaysBefore: boolean;
+
+  send1DayBefore: boolean;
+
+  sendOnExpiry: boolean;
+};
