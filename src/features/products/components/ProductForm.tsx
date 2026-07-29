@@ -6,6 +6,7 @@ import { useProductStore } from "../store";
 import { useWarrantyStore } from "@/features/warranty/store";
 import toast from "react-hot-toast";
 import { CATEGORIES } from "../categories";
+import { supabase } from "@/lib/supabase";
 
 export function ProductForm() {
   const addProduct = useProductStore((state) => state.addProduct);
@@ -23,17 +24,37 @@ export function ProductForm() {
     resolver: zodResolver(productSchema),
   });
 
-  const onSubmit = (data: productFormDataT) => {
-    const newProduct = { ...data, id: crypto.randomUUID() };
+const onSubmit = async (data: productFormDataT) => {
+  const newProduct = { ...data, id: crypto.randomUUID() };
 
-    addProduct(newProduct);
+  const { error } = await supabase
+    .from("products")
+    .insert({
+      name: data.name,
+      price: data.price,
+      importance: data.importance,
+      category: data.category,
+      purchase_date: data.purchaseDate,
+      duration_months: data.durationMonths,
+      receipt: data.receipt ?? null,
+    });
 
-    evaluateWarranty(newProduct);
+  if (error) {
+    console.error(error);
+    toast.error("Error al guardar en Supabase");
+    return;
+  }
 
-    reset();
+  addProduct(newProduct);
 
-    toast.success("Producto agregado correctamente", { duration: 3000 });
-  };
+  evaluateWarranty(newProduct);
+
+  reset();
+
+  toast.success("Producto agregado correctamente", {
+    duration: 3000,
+  });
+};
 
   return (
     <form
