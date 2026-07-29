@@ -3,13 +3,17 @@
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/reminderStore";
-import { useState } from "react";
+import { useWarrantyStore } from "@/features/warranty/store";
+import { checkReminders } from "@/features/warranty/utils/checkReminders";
+import { useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
+import { supabase } from "@/lib/supabase";
 
 export default function RemindersPage() {
   const { filteredProductsWithWarranty } = useProductFilters();
 
   const { settings, updateSettings } = useReminderStore();
+  const { warranties } = useWarrantyStore();
 
   const [email, setEmail] = useState(settings.email);
 
@@ -24,6 +28,33 @@ export default function RemindersPage() {
 
   const [sendOnExpiry, setSendOnExpiry] =
     useState(settings.sendOnExpiry);
+
+  useEffect(() => {
+    async function loadSettings() {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+      if (error || !data) return;
+
+      setEmail(data.email);
+      setSend30DaysBefore(data.send_30_days_before);
+      setSend7DaysBefore(data.send_7_days_before);
+      setSend1DayBefore(data.send_1_day_before);
+      setSendOnExpiry(data.send_on_expiry);
+    }
+
+    loadSettings();
+  }, []);
+
+  const reminders = checkReminders(
+    warranties,
+    settings,
+  );
+
+  console.log(reminders);
   const sendEmail = async () => {
     try {
       const result = await emailjs.send(
@@ -128,6 +159,22 @@ export default function RemindersPage() {
         </div>
         <button
           onClick={async () => {
+            const { error } = await supabase
+              .from("settings")
+              .update({
+                email,
+                send_30_days_before: send30DaysBefore,
+                send_7_days_before: send7DaysBefore,
+                send_1_day_before: send1DayBefore,
+                send_on_expiry: sendOnExpiry,
+              })
+              .eq("id", 1);
+
+            if (error) {
+              console.error(error);
+              return;
+            }
+
             updateSettings({
               email,
               send30DaysBefore,
@@ -137,6 +184,8 @@ export default function RemindersPage() {
             });
 
             await sendEmail();
+
+            console.log("Configuración guardada");
           }}
           className="mt-4 px-4 py-2 rounded bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-all"
         >

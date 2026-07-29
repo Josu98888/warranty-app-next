@@ -6,8 +6,7 @@ import { seedTestData, clearAllData } from "@/features/products/utils/seedData"
 import { useProductStore } from "@/features/products/store";
 import SummaryCards from "@/features/home/SummaryCards";
 
-export default function HomePage () {
-
+export default function HomePage() {
     const totalProducts = useProductStore((storeState) => storeState.products.length)
 
     const {
@@ -20,11 +19,11 @@ export default function HomePage () {
         activeFilterCount,
     } = useProductFilters()
 
-    return(
+    return (
         <main className="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto">
             <SummaryCards />
 
-           <h2 className="text-xl sm:text-2xl font-semibold text-slate-800 mb-6">Garantías para tus productos</h2> 
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-800 mb-6">Garantías para tus productos</h2>
 
             <ProductFilters
                 searchQuery={searchQuery}
@@ -44,6 +43,6 @@ export default function HomePage () {
                 totalProductCount={totalProductCount}
             />
 
-        </main>    
+        </main>
     )
 }
