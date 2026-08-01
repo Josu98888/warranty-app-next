@@ -7,7 +7,8 @@ import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/reminderStore";
 import { useWarrantyStore } from "@/features/warranty/store";
 import { checkReminders } from "@/features/warranty/utils/checkReminders";
-
+import { formatExpiryDate } from "@/features/warranty/utils/formatExpiryDate";
+import { getMostUrgentProduct } from "@/features/warranty/utils/getMostUrgentProduct";
 
 export default function RemindersPage() {
   const { filteredProductsWithWarranty } = useProductFilters();
@@ -118,11 +119,17 @@ export default function RemindersPage() {
                 sendOnExpiry,
               });
 
-              await sendReminderEmail({
-                toEmail: email,
-                productName: "Producto de prueba",
-                expiryDate: "01/09/2026",
-              });
+              const nextToExpire = getMostUrgentProduct(upcoming);
+
+              if (nextToExpire?.warranty?.expiryDate) {
+                await sendReminderEmail({
+                  toEmail: email,
+                  productName: nextToExpire.name,
+                  expiryDate: formatExpiryDate(
+                    nextToExpire.warranty.expiryDate,
+                  ),
+                });
+              }
 
               console.log("Configuración guardada");
             } catch (error) {
