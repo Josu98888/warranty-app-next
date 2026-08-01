@@ -115,4 +115,4 @@ Se creó `ProductDataActions.tsx`, un componente independiente que recibe `hasPr
 - Eliminar la suscripción directa al store en la página y derivar todo desde el valor que ya expone el hook.
 
 **Solución aplicada:**
-Se eliminó el `useProductStore` de `ProductsPage`. Ahora `hasProducts` se deriva directamente de `totalProductCount` (`totalProductCount > 0`), que ya viene de `useProductFilters`, evitando la doble suscripción al store desde el mismo componente.
+Se eliminó el `useProductStore` de `ProductsPage`. Ahora `hasProducts` se deriva directamente de `totalProductCount` (`totalProductCount > 0`), que ya viene de `useProductFilters`, evitando la doble suscripción al store desde el mismo componente. 
