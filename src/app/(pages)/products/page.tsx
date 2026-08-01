@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import ProductsView from "@/features/products/components/ProductsView";
 
-//metadata quiero esto en español 
 export const metadata: Metadata = {
   title: "Productos | Garantías de productos",
   description: "Administra y revisa tus productos y sus garantías.",
