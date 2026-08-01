@@ -57,3 +57,62 @@ Toda la app usa `react-hot-toast` (`toast.success(...)`) para notificar al agreg
 ## 9.Rutas relativas rotas en ROUTES
 Los valores de `ROUTES` (excepto `HOME`) no tenían `/` inicial, por lo que los links del Sidebar/Topbar se resolvían de forma relativa a la página actual en vez de ser absolutos. Ejemplo: desde `/reminders`, un link a `record-product` navegaba a `/reminders/record-product` (ruta inexistente) en vez de `/record-product`.
 **Solución:** se agregó `/` inicial a cada valor de `ROUTES`.
+
+## 10. Lógica de negocio mezclada dentro de un hook de filtros
+**Descripción:** El hook `useProductFilters` no solo filtraba productos por búsqueda y categoría, sino que además:
+- Hacía un join manual con el store de `warranty` usando `Array.find` dentro de un `map` (O(n·m)).
+- Contenía ~40 líneas de lógica de agrupamiento y ordenamiento por urgencia de garantía (vencida / por vencer / vigente) directamente dentro de un `useMemo`.
+- El archivo se llamaba `useProducts.ts` pero exportaba `useProductFilters`, generando confusión al navegar el código.
+
+**Solución propuesta:**
+- Extraer el filtrado, el join y el ordenamiento a funciones puras y testeables fuera de React.
+- Reemplazar el `find` dentro del `map` por un `Map` para evitar la búsqueda O(n·m).
+- Renombrar el archivo del hook para que coincida con su export.
+
+**Solución aplicada:**
+Se crearon tres utilidades puras: `filterProducts.ts` (búsqueda + categoría, en `features/products/utils`), `attachWarrantyToProducts.ts` (join usando `Map` en vez de `find`, en `features/warranty/utils`) y `sortByWarrantyUrgency.ts` (agrupamiento y comparación por urgencia de garantía, también en `features/warranty/utils`). El hook `useProductFilters` quedó reducido a orquestar estas tres funciones dentro de su `useMemo`, sin lógica de negocio propia. Se renombró `useProducts.ts` a `useProductFilters.ts` para que el nombre del archivo coincida con el hook exportado.
+
+---
+
+## 11. Bug de tipos por `productT.id` opcional
+**Descripción:** Al usar `product.id` como clave de un `Map<string, warrantyT>` en `attachWarrantyToProducts`, TypeScript arrojaba `Argument of type 'string | undefined' is not assignable to parameter of type 'string'`, porque `productT.id` está tipado como opcional.
+
+**Solución propuesta:**
+- Revisar si `id` debería ser obligatorio en `productT` (ya que es el identificador del producto una vez persistido).
+- Si debe seguir siendo opcional, agregar un guard antes de usarlo como clave de búsqueda.
+
+**Solución aplicada:**
+Se agregó un guard explícito en `attachWarrantyToProducts`: `product.id ? warrantyById.get(product.id) : undefined`. Queda pendiente evaluar si conviene hacer `id` obligatorio en `productT` a nivel de tipos para evitar que el mismo problema reaparezca en otros puntos del código (ordenamientos, `key` de listas en React, etc.).
+
+---
+
+## 12. Prop explosion en `ProductFilters`
+**Descripción:** El componente `ProductFilters` recibía 8 props sueltas (`searchQuery`, `onSearchChange`, `categoryFilter`, `onCategoryChange`, `onReset`, `totalProductCount`, `filteredProductCount`, `activeFilterCount`), lo cual volvía la firma ruidosa y difícil de extender.
+
+**Solución propuesta:**
+- Agrupar las props por responsabilidad (estado, acciones, estadísticas) en vez de pasarlas todas sueltas.
+
+**Solución aplicada:**
+Se agruparon las props en tres objetos tipados: `state` (`searchQuery`, `categoryFilter`), `actions` (`onSearchChange`, `onCategoryChange`, `onReset`) y `stats` (`totalProductCount`, `filteredProductCount`, `activeFilterCount`). La firma del componente pasó de 8 props sueltas a 3 props agrupadas, sin perder tipado.
+
+---
+
+## 13. Responsabilidad mezclada: filtrado + gestión de datos en el mismo componente
+**Descripción:** `ProductFilters` recibía además `onClearAllData` y `hasProducts`, mezclando la responsabilidad de filtrar productos con la de cargar/limpiar datos de prueba. El handler `onClearAllData` cambiaba de comportamiento según `hasProducts` (a veces limpiaba, a veces cargaba datos), lo cual era ambiguo y estaba armado con una ternaria inline en `ProductsPage`.
+
+**Solución propuesta:**
+- Separar la gestión de datos (seed/clear) en un componente propio, con handlers explícitos y nombrados.
+
+**Solución aplicada:**
+Se creó `ProductDataActions.tsx`, un componente independiente que recibe `hasProducts`, `onClear` y `onLoadSampleData` como props separadas y explícitas. `ProductFilters` quedó exclusivamente enfocado en búsqueda, categoría y reset de filtros. En `ProductsPage` ambos componentes se renderizan de forma independiente.
+
+---
+
+## 14. Doble suscripción al store en `ProductsPage`
+**Descripción:** `ProductsPage` llamaba a `useProductStore((storeState) => storeState.products.length)` para obtener `totalProducts`, pero el hook `useProductFilters` ya devolvía ese mismo valor bajo el nombre `totalProductCount`. Esto generaba dos suscripciones distintas al mismo slice del store desde el mismo componente.
+
+**Solución propuesta:**
+- Eliminar la suscripción directa al store en la página y derivar todo desde el valor que ya expone el hook.
+
+**Solución aplicada:**
+Se eliminó el `useProductStore` de `ProductsPage`. Ahora `hasProducts` se deriva directamente de `totalProductCount` (`totalProductCount > 0`), que ya viene de `useProductFilters`, evitando la doble suscripción al store desde el mismo componente.

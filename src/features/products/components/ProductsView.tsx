@@ -1,15 +1,11 @@
-// src/app/products/ProductsPage.tsx
 "use client";
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import ProductFilters from "@/features/products/components/ProductFilters";
 import ProductDataActions from "@/features/products/components/ProductDataActions";
 import ProductsTable from "@/features/products/components/ProductsTable";
 import { seedTestData, clearAllData } from "@/features/products/utils/seedData";
-import { useProductStore } from "@/features/products/store";
 
 export default function ProductsPage() {
-  const totalProducts = useProductStore((storeState) => storeState.products.length);
-
   const {
     filteredProductsWithWarranty,
     searchQuery,
@@ -22,6 +18,8 @@ export default function ProductsPage() {
     activeFilterCount,
   } = useProductFilters();
 
+  const hasProducts = totalProductCount > 0;
+
   return (
     <main className="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto">
       <h2 className="text-xl sm:text-2xl font-semibold text-slate-800 mb-6">
@@ -29,18 +27,17 @@ export default function ProductsPage() {
       </h2>
 
       <ProductFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        categoryFilter={categoryFilter}
-        onCategoryChange={setCategoryFilter}
-        onReset={resetFilters}
-        totalProductCount={totalProductCount}
-        filteredProductCount={filteredProductCount}
-        activeFilterCount={activeFilterCount}
+        state={{ searchQuery, categoryFilter }}
+        actions={{
+          onSearchChange: setSearchQuery,
+          onCategoryChange: setCategoryFilter,
+          onReset: resetFilters,
+        }}
+        stats={{ totalProductCount, filteredProductCount, activeFilterCount }}
       />
 
       <ProductDataActions
-        hasProducts={totalProducts > 0}
+        hasProducts={hasProducts}
         onClear={clearAllData}
         onLoadSampleData={seedTestData}
       />
