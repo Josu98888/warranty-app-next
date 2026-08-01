@@ -1,7 +1,7 @@
 "use client";
 import type { Metadata } from "next";
 import { useReminderEmail } from "@/features/warranty/hooks/useReminderEmail";
-
+import { useReminderSettings } from "@/features/warranty/hooks/useReminderSettings";
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/reminderStore";
@@ -16,21 +16,36 @@ export default function RemindersPage() {
   const { settings, updateSettings } = useReminderStore();
   const { warranties } = useWarrantyStore();
 
-  const [email, setEmail] = useState(settings.email);
+  const {
+    email,
+    setEmail,
+    send30DaysBefore,
+    setSend30DaysBefore,
+    send7DaysBefore,
+    setSend7DaysBefore,
+    send1DayBefore,
+    setSend1DayBefore,
+    sendOnExpiry,
+    setSendOnExpiry,
+    saveSettings,
+  } = useReminderSettings(settings);
 
-  const [send30DaysBefore, setSend30DaysBefore] = useState(
-    settings.send30DaysBefore,
-  );
+  // const [email, setEmail] = useState(settings.email);
 
-  const [send7DaysBefore, setSend7DaysBefore] = useState(
-    settings.send7DaysBefore,
-  );
+  // const [send30DaysBefore, setSend30DaysBefore] = useState(
+  //   settings.send30DaysBefore,
+  // );
 
-  const [send1DayBefore, setSend1DayBefore] = useState(settings.send1DayBefore);
+  // const [send7DaysBefore, setSend7DaysBefore] = useState(
+  //   settings.send7DaysBefore,
+  // );
 
-  const [sendOnExpiry, setSendOnExpiry] = useState(settings.sendOnExpiry);
+  // const [send1DayBefore, setSend1DayBefore] = useState(settings.send1DayBefore);
 
-  const { sendReminderEmail, isSending } = useReminderEmail();
+  // const [sendOnExpiry, setSendOnExpiry] = useState(settings.sendOnExpiry);
+
+  //
+  const { sendReminderEmail } = useReminderEmail();
 
   useEffect(() => {
     async function loadSettings() {
@@ -55,7 +70,7 @@ export default function RemindersPage() {
   const reminders = checkReminders(warranties, settings);
 
   console.log(reminders);
-  
+
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
 
@@ -126,40 +141,30 @@ export default function RemindersPage() {
           </label>
         </div>
         <button
-          onClick={async () => {
-            const { error } = await supabase
-              .from("settings")
-              .update({
-                email,
-                send_30_days_before: send30DaysBefore,
-                send_7_days_before: send7DaysBefore,
-                send_1_day_before: send1DayBefore,
-                send_on_expiry: sendOnExpiry,
-              })
-              .eq("id", 1);
-
-            if (error) {
-              console.error(error);
-              return;
-            }
-
-            updateSettings({
-              email,
-              send30DaysBefore,
-              send7DaysBefore,
-              send1DayBefore,
-              sendOnExpiry,
-            });
-
-            await sendReminderEmail({
-              toEmail: email,
-              productName: "Producto de prueba",
-              expiryDate: "01/09/2026",
-            });
-
-            console.log("Configuración guardada");
-          }}
           className="mt-4 px-4 py-2 rounded bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-all"
+          onClick={async () => {
+            try {
+              await saveSettings();
+
+              updateSettings({
+                email,
+                send30DaysBefore,
+                send7DaysBefore,
+                send1DayBefore,
+                sendOnExpiry,
+              });
+
+              await sendReminderEmail({
+                toEmail: email,
+                productName: "Producto de prueba",
+                expiryDate: "01/09/2026",
+              });
+
+              console.log("Configuración guardada");
+            } catch (error) {
+              console.error(error);
+            }
+          }}
         >
           Guardar
         </button>
