@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type productFormDataT } from "../schema";
 import { useProductStore } from "../store";
-import { useWarrantyStore } from "@/features/warranty/store";
+import { useWarrantyStore } from "@/features/warranty/store/store";
 import toast from "react-hot-toast";
 import { CATEGORIES } from "../categories";
 import { supabase } from "@/lib/supabase";

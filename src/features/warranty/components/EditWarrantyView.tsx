@@ -7,7 +7,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 import { useProductStore } from "@/features/products/store";
-import { useWarrantyStore } from "@/features/warranty/store";
+import { useWarrantyStore } from "@/features/warranty/store/store";
 import type { productT } from "@/features/products/types";
 import { ROUTES } from "@/shared/utils/route";
 
