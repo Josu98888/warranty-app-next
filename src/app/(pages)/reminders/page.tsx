@@ -1,6 +1,5 @@
 "use client";
 import type { Metadata } from "next";
-import RemindersView from "@/features/warranty/RemindersView";
 import { useReminderEmail } from "@/features/warranty/hooks/useReminderEmail";
 
 import { useProductFilters } from "@/features/products/hooks/useProducts";
@@ -9,7 +8,6 @@ import { useReminderStore } from "@/features/warranty/reminderStore";
 import { useWarrantyStore } from "@/features/warranty/store";
 import { checkReminders } from "@/features/warranty/utils/checkReminders";
 import { useState, useEffect } from "react";
-import emailjs from "@emailjs/browser";
 import { supabase } from "@/lib/supabase";
 
 export default function RemindersPage() {
@@ -57,24 +55,7 @@ export default function RemindersPage() {
   const reminders = checkReminders(warranties, settings);
 
   console.log(reminders);
-  const sendEmail = async () => {
-    try {
-      const result = await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          to_email: email,
-          product_name: "Producto de prueba",
-          expiry_date: "01/09/2026",
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
-      );
-
-      console.log("Correo enviado:", result);
-    } catch (error: unknown) {
-      console.error(error);
-    }
-  };
+  
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
 
