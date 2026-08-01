@@ -1,6 +1,7 @@
 "use client";
 import type { Metadata } from "next";
 import RemindersView from "@/features/warranty/RemindersView";
+import { useReminderEmail } from "@/features/warranty/hooks/useReminderEmail";
 
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
@@ -19,17 +20,19 @@ export default function RemindersPage() {
 
   const [email, setEmail] = useState(settings.email);
 
-  const [send30DaysBefore, setSend30DaysBefore] =
-    useState(settings.send30DaysBefore);
+  const [send30DaysBefore, setSend30DaysBefore] = useState(
+    settings.send30DaysBefore,
+  );
 
-  const [send7DaysBefore, setSend7DaysBefore] =
-    useState(settings.send7DaysBefore);
+  const [send7DaysBefore, setSend7DaysBefore] = useState(
+    settings.send7DaysBefore,
+  );
 
-  const [send1DayBefore, setSend1DayBefore] =
-    useState(settings.send1DayBefore);
+  const [send1DayBefore, setSend1DayBefore] = useState(settings.send1DayBefore);
 
-  const [sendOnExpiry, setSendOnExpiry] =
-    useState(settings.sendOnExpiry);
+  const [sendOnExpiry, setSendOnExpiry] = useState(settings.sendOnExpiry);
+
+  const { sendReminderEmail, isSending } = useReminderEmail();
 
   useEffect(() => {
     async function loadSettings() {
@@ -51,10 +54,7 @@ export default function RemindersPage() {
     loadSettings();
   }, []);
 
-  const reminders = checkReminders(
-    warranties,
-    settings,
-  );
+  const reminders = checkReminders(warranties, settings);
 
   console.log(reminders);
   const sendEmail = async () => {
@@ -78,10 +78,7 @@ export default function RemindersPage() {
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
 
-    return (
-      status?.variant === "expiring-soon" ||
-      status?.variant === "expired"
-    );
+    return status?.variant === "expiring-soon" || status?.variant === "expired";
   });
 
   return (
@@ -94,13 +91,9 @@ export default function RemindersPage() {
 
       {/* Configuración de recordatorios */}
       <div className="border rounded-lg p-4 mb-6">
-        <h2 className="font-semibold mb-4">
-          Configuración de recordatorios
-        </h2>
+        <h2 className="font-semibold mb-4">Configuración de recordatorios</h2>
 
-        <label className="block mb-2">
-          Correo de notificación
-        </label>
+        <label className="block mb-2">Correo de notificación</label>
 
         <input
           type="email"
@@ -116,9 +109,7 @@ export default function RemindersPage() {
               type="checkbox"
               className="mr-2"
               checked={send30DaysBefore}
-              onChange={(e) =>
-                setSend30DaysBefore(e.target.checked)
-              }
+              onChange={(e) => setSend30DaysBefore(e.target.checked)}
             />
             Enviar 30 días antes
           </label>
@@ -128,9 +119,7 @@ export default function RemindersPage() {
               type="checkbox"
               className="mr-2"
               checked={send7DaysBefore}
-              onChange={(e) =>
-                setSend7DaysBefore(e.target.checked)
-              }
+              onChange={(e) => setSend7DaysBefore(e.target.checked)}
             />
             Enviar 7 días antes
           </label>
@@ -140,9 +129,7 @@ export default function RemindersPage() {
               type="checkbox"
               className="mr-2"
               checked={send1DayBefore}
-              onChange={(e) =>
-                setSend1DayBefore(e.target.checked)
-              }
+              onChange={(e) => setSend1DayBefore(e.target.checked)}
             />
             Enviar 1 día antes
           </label>
@@ -152,9 +139,7 @@ export default function RemindersPage() {
               type="checkbox"
               className="mr-2"
               checked={sendOnExpiry}
-              onChange={(e) =>
-                setSendOnExpiry(e.target.checked)
-              }
+              onChange={(e) => setSendOnExpiry(e.target.checked)}
             />
             Enviar cuando venza
           </label>
@@ -185,7 +170,11 @@ export default function RemindersPage() {
               sendOnExpiry,
             });
 
-            await sendEmail();
+            await sendReminderEmail({
+              toEmail: email,
+              productName: "Producto de prueba",
+              expiryDate: "01/09/2026",
+            });
 
             console.log("Configuración guardada");
           }}
@@ -203,9 +192,7 @@ export default function RemindersPage() {
 
       <ul className="flex flex-col gap-3">
         {upcoming.map((p) => {
-          const status = getWarrantyStatus(
-            p.warranty?.expiryDate
-          );
+          const status = getWarrantyStatus(p.warranty?.expiryDate);
 
           return (
             <li
