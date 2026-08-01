@@ -1,4 +1,3 @@
-// src/features/warranty/utils/getMostUrgentProduct.ts
 import type { productT } from "@/features/products/types";
 import type { warrantyT } from "@/features/warranty/types";
 
