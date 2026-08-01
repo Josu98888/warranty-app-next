@@ -1,27 +1,38 @@
 import { Search, FilterX } from "lucide-react";
 import { CATEGORIES } from "@/features/products/categories";
 
-interface ProductFiltersProps {
+interface FilterState {
   searchQuery: string;
-  onSearchChange: (value: string) => void;
   categoryFilter: string;
+}
+
+interface FilterActions {
+  onSearchChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
   onReset: () => void;
+}
+
+interface FilterStats {
   totalProductCount: number;
   filteredProductCount: number;
   activeFilterCount: number;
 }
 
+interface ProductFiltersProps {
+  state: FilterState;
+  actions: FilterActions;
+  stats: FilterStats;
+}
+
 export default function ProductFilters({
-  searchQuery,
-  onSearchChange,
-  categoryFilter,
-  onCategoryChange,
-  onReset,
-  totalProductCount,
-  filteredProductCount,
-  activeFilterCount,
+  state,
+  actions,
+  stats,
 }: ProductFiltersProps) {
+  const { searchQuery, categoryFilter } = state;
+  const { onSearchChange, onCategoryChange, onReset } = actions;
+  const { totalProductCount, filteredProductCount, activeFilterCount } = stats;
+
   return (
     <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
       <div className="flex flex-col gap-4">
