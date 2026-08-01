@@ -1,6 +1,8 @@
+// src/app/products/ProductsPage.tsx
 "use client";
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import ProductFilters from "@/features/products/components/ProductFilters";
+import ProductDataActions from "@/features/products/components/ProductDataActions";
 import ProductsTable from "@/features/products/components/ProductsTable";
 import { seedTestData, clearAllData } from "@/features/products/utils/seedData";
 import { useProductStore } from "@/features/products/store";
@@ -32,11 +34,15 @@ export default function ProductsPage() {
         categoryFilter={categoryFilter}
         onCategoryChange={setCategoryFilter}
         onReset={resetFilters}
-        onClearAllData={totalProducts === 0 ? seedTestData : clearAllData}
-        hasProducts={totalProducts > 0}
         totalProductCount={totalProductCount}
         filteredProductCount={filteredProductCount}
         activeFilterCount={activeFilterCount}
+      />
+
+      <ProductDataActions
+        hasProducts={totalProducts > 0}
+        onClear={clearAllData}
+        onLoadSampleData={seedTestData}
       />
 
       <ProductsTable
