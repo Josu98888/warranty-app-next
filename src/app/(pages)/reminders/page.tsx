@@ -7,8 +7,7 @@ import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/reminderStore";
 import { useWarrantyStore } from "@/features/warranty/store";
 import { checkReminders } from "@/features/warranty/utils/checkReminders";
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+
 
 export default function RemindersPage() {
   const { filteredProductsWithWarranty } = useProductFilters();
@@ -30,42 +29,7 @@ export default function RemindersPage() {
     saveSettings,
   } = useReminderSettings(settings);
 
-  // const [email, setEmail] = useState(settings.email);
-
-  // const [send30DaysBefore, setSend30DaysBefore] = useState(
-  //   settings.send30DaysBefore,
-  // );
-
-  // const [send7DaysBefore, setSend7DaysBefore] = useState(
-  //   settings.send7DaysBefore,
-  // );
-
-  // const [send1DayBefore, setSend1DayBefore] = useState(settings.send1DayBefore);
-
-  // const [sendOnExpiry, setSendOnExpiry] = useState(settings.sendOnExpiry);
-
-  //
   const { sendReminderEmail } = useReminderEmail();
-
-  useEffect(() => {
-    async function loadSettings() {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("*")
-        .eq("id", 1)
-        .single();
-
-      if (error || !data) return;
-
-      setEmail(data.email);
-      setSend30DaysBefore(data.send_30_days_before);
-      setSend7DaysBefore(data.send_7_days_before);
-      setSend1DayBefore(data.send_1_day_before);
-      setSendOnExpiry(data.send_on_expiry);
-    }
-
-    loadSettings();
-  }, []);
 
   const reminders = checkReminders(warranties, settings);
 
