@@ -6,9 +6,9 @@ import type {
   temporalThresholdsT,
   warrantiesInStateT,
   warrantyT,
-} from "./types";
-import type { productT } from "./types";
-import { ComputeWarrantyTerm } from "./utils/computeWarrantyTerm";
+} from "../types";
+import type { productT } from "../types";
+import { ComputeWarrantyTerm } from "../utils/computeWarrantyTerm";
 
 const THRESHOLDS: temporalThresholdsT = {
   High: { short: 9, long: 24 },

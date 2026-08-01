@@ -7,7 +7,7 @@ import { CATEGORIES } from "../categories";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { ROUTES } from "@/shared/utils/route";
 import { useProductStore } from "@/features/products/store";
-import { useWarrantyStore } from "@/features/warranty/store";
+import { useWarrantyStore } from "@/features/warranty/store/store";
 
 interface ProductsTableProps {
   productsWithWarranty: ProductRow[];

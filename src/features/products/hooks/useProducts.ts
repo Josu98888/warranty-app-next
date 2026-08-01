@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from 'react'
 import { useProductStore } from '../store'
-import { useWarrantyStore } from '@/features/warranty/store'
+import { useWarrantyStore } from '@/features/warranty/store/store'
 import { filterProducts } from '../utils/filterProducts'
 import { attachWarrantyToProducts } from '@/features/warranty/utils/attachWarrantyToProducts'
 import { sortByWarrantyUrgency } from '@/features/warranty/utils/sortByWarrantyUrgency'
