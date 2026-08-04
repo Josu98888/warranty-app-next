@@ -1,21 +1,16 @@
 // src/features/warranty/RemindersView.tsx
 "use client";
 
-import { useReminderEmail } from "@/features/warranty/hooks/useReminderEmail";
 import { useReminderSettings } from "@/features/warranty/hooks/useReminderSettings";
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/store/reminderStore";
-import { useWarrantyStore } from "@/features/warranty/store/store";
-import { checkReminders } from "@/features/warranty/utils/checkReminders";
-import { formatExpiryDate } from "@/features/warranty/utils/formatExpiryDate";
-import { getMostUrgentProduct } from "@/features/warranty/utils/getMostUrgentProduct";
+import toast from "react-hot-toast";
 
 export default function RemindersView() {
   const { filteredProductsWithWarranty } = useProductFilters();
 
   const { settings, updateSettings } = useReminderStore();
-  const { warranties } = useWarrantyStore();
 
   const {
     email,
@@ -30,12 +25,6 @@ export default function RemindersView() {
     setSendOnExpiry,
     saveSettings,
   } = useReminderSettings(settings);
-
-  const { sendReminderEmail } = useReminderEmail();
-
-  const reminders = checkReminders(warranties, settings);
-
-  console.log(reminders);
 
   const upcoming = filteredProductsWithWarranty.filter((p) => {
     const status = getWarrantyStatus(p.warranty?.expiryDate);
@@ -120,21 +109,12 @@ export default function RemindersView() {
                 sendOnExpiry,
               });
 
-              const nextToExpire = getMostUrgentProduct(upcoming);
-
-              if (nextToExpire?.warranty?.expiryDate) {
-                await sendReminderEmail({
-                  toEmail: email,
-                  productName: nextToExpire.name,
-                  expiryDate: formatExpiryDate(
-                    nextToExpire.warranty.expiryDate,
-                  ),
-                });
-              }
+              toast.success("Configuracion de recordatorios guardada");
 
               console.log("Configuración guardada");
             } catch (error) {
               console.error(error);
+              toast.error("No se pudo guardar la configuracion");
             }
           }}
         >
