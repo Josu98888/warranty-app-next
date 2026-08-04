@@ -1,6 +1,6 @@
 import type { productT } from "../types"
 import { useProductStore } from "../store"
-import { useWarrantyStore } from "@/features/warranty/store";
+import { useWarrantyStore } from "@/features/warranty/store/store";
 
 const seedProducts: productT[] = [
   { name: "iPhone 15",            category: "Electronic",   price: 1200, importance: "High",   purchaseDate: "2024-01-15", durationMonths: 12 },

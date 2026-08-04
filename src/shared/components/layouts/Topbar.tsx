@@ -1,10 +1,27 @@
 "use client";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Bell, Plus, Search, UserCircle } from "lucide-react";
 import Link from "next/link";
 
 import { ROUTES } from "@/shared/utils/route";
 
 export default function Topbar() {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchSubmit = (event: FormEvent) => {
+    event.preventDefault();
+
+    const trimmedTerm = searchTerm.trim();
+
+    router.push(
+      trimmedTerm
+        ? `${ROUTES.HOME}?q=${encodeURIComponent(trimmedTerm)}`
+        : ROUTES.HOME,
+    );
+  };
+
   return (
     <header className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 sm:py-0 sm:h-24 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
       {/* Lado izquierdo */}
@@ -21,7 +38,10 @@ export default function Topbar() {
       {/* Lado derecho */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-4">
         {/* Buscador - oculto en móvil */}
-        <div className="hidden sm:block relative">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="hidden sm:block relative"
+        >
           <Search
             size={18}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -30,9 +50,11 @@ export default function Topbar() {
           <input
             type="text"
             placeholder="Buscar..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-48 rounded-lg border border-slate-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
-        </div>
+        </form>
 
         {/* Notificaciones */}
         <button

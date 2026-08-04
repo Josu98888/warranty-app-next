@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type productFormDataT } from "../schema";
 import { useProductStore } from "../store";
-import { useWarrantyStore } from "@/features/warranty/store";
+import { useWarrantyStore } from "@/features/warranty/store/store";
 import toast from "react-hot-toast";
 import { CATEGORIES } from "../categories";
 import { supabase } from "@/lib/supabase";
@@ -168,9 +168,9 @@ const onSubmit = async (data: productFormDataT) => {
           className="mt-1 w-full border rounded px-3 py-2 text-sm"
         >
           <option value="">Elegir importancia...</option>
-          <option value="Low">Alta</option>
+          <option value="Low">Baja</option>
           <option value="Medium">Media</option>
-          <option value="High">Baja</option>
+          <option value="High">Alta</option>
         </select>
         {errors.importance && (
           <p className="text-red-600 text-xs mt-1">

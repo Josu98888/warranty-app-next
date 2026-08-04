@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { reminderSettingsT } from "./types";
+import type { reminderSettingsT } from "../types";
 
 type reminderStoreT = {
   settings: reminderSettingsT;
