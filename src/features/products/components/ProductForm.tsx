@@ -4,15 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type productFormDataT } from "../schema";
 import { useProductStore } from "../store";
 import { useWarrantyStore } from "@/features/warranty/store/store";
+import { productRepository } from "../repositories/productRepository";
 import toast from "react-hot-toast";
+import { uploadReceipt } from "@/lib/uploadReceipt";
 import { CATEGORIES } from "../categories";
-import { supabase } from "@/lib/supabase";
 
 export function ProductForm() {
-  const addProduct = useProductStore((state) => state.addProduct);
-
-  const evaluateWarranty = useWarrantyStore((state) => state.evaluateWarranty);
-
   const {
     register,
     handleSubmit,
@@ -23,39 +20,44 @@ export function ProductForm() {
   } = useForm<productFormDataT>({
     resolver: zodResolver(productSchema),
   });
+  const setProducts = useProductStore(
+    (state) => state.setProducts
+  );
+  const onSubmit = async (data: productFormDataT) => {
+    try {
+      await productRepository.create(data);
 
-const onSubmit = async (data: productFormDataT) => {
-  const newProduct = { ...data, id: crypto.randomUUID() };
+      const products =
+        await productRepository.getAll();
 
-  const { error } = await supabase
-    .from("products")
-    .insert({
-      name: data.name,
-      price: data.price,
-      importance: data.importance,
-      category: data.category,
-      purchase_date: data.purchaseDate,
-      duration_months: data.durationMonths,
-      receipt: data.receipt ?? null,
-    });
+      setProducts(
+        products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          importance: p.importance,
+          category: p.category,
+          purchaseDate: p.purchase_date,
+          durationMonths: p.duration_months
+        }))
+      );
 
-  if (error) {
-    console.error(error);
-    toast.error("Error al guardar en Supabase");
-    return;
-  }
+      reset();
 
-  addProduct(newProduct);
+      toast.success(
+        "Producto agregado correctamente",
+        {
+          duration: 3000,
+        }
+      );
+    } catch (error) {
+      console.error(error);
 
-  evaluateWarranty(newProduct);
-
-  reset();
-
-  toast.success("Producto agregado correctamente", {
-    duration: 3000,
-  });
-};
-
+      toast.error(
+        "Error al guardar producto"
+      );
+    }
+  };
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -186,13 +188,22 @@ const onSubmit = async (data: productFormDataT) => {
           id="receipt"
           type="file"
           accept="image/*,application/pdf"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => setValue("receipt", reader.result as string);
-            reader.readAsDataURL(file);
-          }}
+          onChange={async (e) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  try {
+    const publicUrl = await uploadReceipt(file);
+
+    setValue("receipt", publicUrl);
+    toast.success("Comprobante subido");
+  } catch (error) {
+    console.error(error);
+
+    toast.error("Error al subir comprobante");
+  }
+}}
           className="mt-1 w-full border rounded px-3 py-2 text-sm"
         />
         {watch("receipt") && (
@@ -213,3 +224,4 @@ const onSubmit = async (data: productFormDataT) => {
     </form>
   );
 }
+

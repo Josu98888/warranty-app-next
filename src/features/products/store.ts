@@ -1,52 +1,47 @@
 "use client";
+
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { productsInStateT, productT } from "@/features/products/types";
+import type { productT } from "@/features/products/types";
 
 type productStoreT = {
   products: productT[];
+
+  setProducts: (products: productT[]) => void;
+
   addProduct: (product: productT) => void;
-  updateProduct: (id: string, data: Partial<productT>) => void;
+
+  updateProduct: (
+    id: string,
+    data: Partial<productT>
+  ) => void;
+
   deleteProduct: (id: string) => void;
 };
 
-export const useProductStore = create<productStoreT>()(
-  persist(
-    (set) => {
-      return {
-        products: [],
+export const useProductStore = create<productStoreT>((set) => ({
+  products: [],
 
-        addProduct: (data) => {
-          set((state: productStoreT): productsInStateT => {
-            return {
-              products: [
-                ...state.products,
-                {
-                  id: crypto.randomUUID(),
-                  ...data,
-                },
-              ],
-            };
-          });
-        },
-        updateProduct: (id, data) => {
-          set((state): productsInStateT => {
-            return {
-              products: state.products.map((product) => {
-                return product.id === id ? { ...product, ...data } : product;
-              }),
-            };
-          });
-        },
-        deleteProduct: (id) => {
-          set((state): productsInStateT => {
-            return {
-              products: state.products.filter((product) => product.id !== id),
-            };
-          });
-        },
-      };
-    },
-    { name: "product-storage" },
-  ),
-);
+  setProducts: (products) =>
+    set({ products }),
+
+  addProduct: (product) =>
+    set((state) => ({
+      products: [...state.products, product],
+    })),
+
+  updateProduct: (id, data) =>
+    set((state) => ({
+      products: state.products.map((product) =>
+        product.id === id
+          ? { ...product, ...data }
+          : product
+      ),
+    })),
+
+  deleteProduct: (id) =>
+    set((state) => ({
+      products: state.products.filter(
+        (product) => product.id !== id
+      ),
+    })),
+}));

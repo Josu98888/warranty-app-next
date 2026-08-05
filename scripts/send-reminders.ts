@@ -54,63 +54,56 @@ async function main() {
     );
 
     let subject = "";
-    let message = "";
-    let fieldToUpdate = "";
+    let reminderType = "";
     if (
-      settings.send_30_days_before &&
-      daysRemaining === 30 &&
-      !product.notification_30_days
-    ) {
-      subject = "Tu garantía vence en 30 días";
+  settings.send_30_days_before &&
+  daysRemaining === 30
+) {
+  subject = "Tu garantía vence en 30 días";
 
-      message =
-        `La garantía de ${product.name} vence el ${expiryDate.toLocaleDateString()}.`;
+  reminderType = "30_days";
+}
+else if (
+  settings.send_7_days_before &&
+  daysRemaining === 7
+) {
+  subject = "Tu garantía vence en 7 días";
 
-      fieldToUpdate = "notification_30_days";
-    }
+  reminderType = "7_days";
+}
+else if (
+  settings.send_1_day_before &&
+  daysRemaining === 1
+) {
+  subject = "Tu garantía vence mañana";
 
-    else if (
-      settings.send_7_days_before &&
-      daysRemaining === 7 &&
-      !product.notification_7_days
-    ) {
-      subject = "Tu garantía vence en 7 días";
+  reminderType = "1_day";
+}
+else if (
+  settings.send_on_expiry &&
+  daysRemaining <= 0
+) {
+  subject = "Tu garantía ha vencido";
 
-      message =
-        `La garantía de ${product.name} vence el ${expiryDate.toLocaleDateString()}.`;
+  reminderType = "expired";
+}
+else {
+  continue;
+}
+const { data: existingReminder, error: reminderError } = await supabase
+  .from("reminder_logs")
+  .select("id")
+  .eq("product_id", product.id)
+  .eq("reminder_type", reminderType)
+  .maybeSingle();
 
-      fieldToUpdate = "notification_7_days";
-    }
-
-    else if (
-      settings.send_1_day_before &&
-      daysRemaining === 1 &&
-      !product.notification_1_day
-    ) {
-      subject = "Tu garantía vence mañana";
-
-      message =
-        `La garantía de ${product.name} vence mañana.`;
-
-      fieldToUpdate = "notification_1_day";
-    }
-
-    else if (
-      settings.send_on_expiry &&
-      daysRemaining <= 0 &&
-      !product.notification_expired
-    ) {
-      subject = "Tu garantía ha vencido";
-
-      message =
-        `La garantía de ${product.name} ya ha vencido.`;
-
-      fieldToUpdate = "notification_expired";
-    }
-
-    else {
-      continue;
-    }
+if (reminderError) {
+  console.error(reminderError);
+  continue;
+}
+if (existingReminder) {
+  continue;
+}
     let statusText = "";
 
     if (daysRemaining > 1) {
@@ -204,12 +197,12 @@ async function main() {
   </div>
   `,
     });
-    await supabase
-      .from("products")
-      .update({
-        [fieldToUpdate]: true,
-      })
-      .eq("id", product.id);
+   await supabase
+  .from("reminder_logs")
+  .insert({
+    product_id: product.id,
+    reminder_type: reminderType,
+  });
 
     console.log(`Correo enviado: ${product.name}`
 

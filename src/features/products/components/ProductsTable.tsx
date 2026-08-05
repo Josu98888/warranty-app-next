@@ -2,12 +2,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import type { ProductRow } from "@/features/products/hooks/useProducts";
+import type { ProductRow } from "@/features/warranty/utils/attachWarrantyToProducts";
 import { CATEGORIES } from "../categories";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { ROUTES } from "@/shared/utils/route";
 import { useProductStore } from "@/features/products/store";
 import { useWarrantyStore } from "@/features/warranty/store/store";
+import { productRepository } from "@/features/products/repositories/productRepository";
 
 interface ProductsTableProps {
   productsWithWarranty: ProductRow[];
@@ -24,17 +25,38 @@ export default function ProductsTable({
   const deleteProduct = useProductStore((state) => state.deleteProduct);
   const removeWarranty = useWarrantyStore((state) => state.removeWarranty);
 
-  const handleDelete = (id: string | undefined, name: string) => {
+  const handleDelete = async (
+
+    id: string | undefined,
+
+    name: string,
+
+  ) => {
     if (!id) return;
 
     const confirmed = window.confirm(
       `¿Seguro que querés eliminar "${name}"? Esta acción no se puede deshacer.`,
     );
+
     if (!confirmed) return;
 
-    deleteProduct(id);
-    removeWarranty(id);
-    toast.success("Producto eliminado", { duration: 3000 });
+    try {
+await productRepository.delete(id);
+      deleteProduct(id);
+      removeWarranty(id);
+
+      toast.success("Producto eliminado", {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("ERROR:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al eliminar el producto"
+      );
+    }
   };
 
   const totalPages = Math.max(
@@ -215,8 +237,8 @@ export default function ProductsTable({
                   <div className="text-xs sm:text-sm">
                     {productRow.warranty?.expiryDate
                       ? new Date(
-                          productRow.warranty.expiryDate,
-                        ).toLocaleDateString()
+                        productRow.warranty.expiryDate,
+                      ).toLocaleDateString()
                       : "—"}
                   </div>
                   {productRow.warranty?.expiryDate && (

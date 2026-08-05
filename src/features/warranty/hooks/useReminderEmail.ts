@@ -27,8 +27,6 @@ export function useReminderEmail() {
           },
           process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
         );
-
-        console.log("Correo enviado:", result);
         return result;
       } catch (err: unknown) {
         console.error(err);
