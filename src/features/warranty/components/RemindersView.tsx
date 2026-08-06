@@ -110,8 +110,6 @@ export default function RemindersView() {
               });
 
               toast.success("Configuracion de recordatorios guardada");
-
-              console.log("Configuración guardada");
             } catch (error) {
               console.error(error);
               toast.error("No se pudo guardar la configuracion");

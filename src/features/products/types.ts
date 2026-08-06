@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 
 export type productT = {
-  id?: string;
+  id?: number;
   name: string;
   price: string | number ;
   importance: "High" | "Medium" | "Low" ;

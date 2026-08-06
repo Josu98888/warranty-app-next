@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type productFormDataT } from "../schema";
 import { useProductStore } from "../store";
-import { useWarrantyStore } from "@/features/warranty/store/store";
 import { productRepository } from "../repositories/productRepository";
+
 import toast from "react-hot-toast";
 import { uploadReceipt } from "@/lib/uploadReceipt";
 import { CATEGORIES } from "../categories";
@@ -38,7 +38,8 @@ export function ProductForm() {
           importance: p.importance,
           category: p.category,
           purchaseDate: p.purchase_date,
-          durationMonths: p.duration_months
+          durationMonths: p.duration_months,
+          receipt: p.receipt
         }))
       );
 

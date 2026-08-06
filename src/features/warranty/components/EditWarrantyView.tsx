@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
+import { productRepository } from "@/features/products/repositories/productRepository";
 import { useProductStore } from "@/features/products/store";
 import { useWarrantyStore } from "@/features/warranty/store/store";
 import type { productT } from "@/features/products/types";
@@ -19,7 +20,7 @@ export default function EditWarrantyView() {
   const updateProduct = useProductStore((state) => state.updateProduct);
   const updateWarranty = useWarrantyStore((state) => state.updateWarranty);
 
-  const product = products.find((p) => p.id === id);
+  const product = products.find((p) => p.id === Number(id));
 
   const [purchaseDate, setPurchaseDate] = useState(product?.purchaseDate ?? "");
   const [durationMonths, setDurationMonths] = useState(
@@ -41,23 +42,28 @@ export default function EditWarrantyView() {
       </main>
     );
   }
+const handleSubmit = async (event: FormEvent) => {
+  event.preventDefault();
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
+  const updatedFields: Partial<productT> = {
+    purchaseDate,
+    durationMonths: Number(durationMonths),
+    importance,
+  };
 
-    const updatedFields: Partial<productT> = {
-      purchaseDate,
-      durationMonths: Number(durationMonths),
-      importance,
-    };
+  try {
+    await productRepository.update(product.id!, updatedFields);
 
     updateProduct(product.id!, updatedFields);
     updateWarranty({ ...product, ...updatedFields });
 
-    toast.success("Garantía actualizada correctamente", { duration: 3000 });
+    toast.success("Garantía actualizada correctamente");
     router.push(ROUTES.HOME);
-  };
-
+  } catch (error) {
+    console.error(error);
+    toast.error("No se pudo actualizar la garantía");
+  }
+};
   return (
     <main className="max-w-xl mx-auto">
       <h1 className="text-xl sm:text-2xl font-semibold text-slate-800 mb-6">

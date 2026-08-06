@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { addMonths, differenceInMonths, parseISO } from "date-fns";
+
 import type {
   temporalThresholdsT,
   warrantiesInStateT,
@@ -27,7 +28,7 @@ type warrantyStoreT = {
 
   updateWarranty: (product: productT) => void;
 
-  removeWarranty: (id: string) => void;
+  removeWarranty: (id: number) => void;
 };
 
 export const useWarrantyStore = create<warrantyStoreT>()(

@@ -23,11 +23,15 @@ export function seedTestData() {
 
   if (products.length > 0) return
 
-  seedProducts.forEach((productSeed) => {
-    const newProduct = { ...productSeed, id: crypto.randomUUID() }
-    addProduct(newProduct)
-    evaluateWarranty(newProduct)
-  })
+  seedProducts.forEach((productSeed, index) => {
+  const newProduct = {
+    ...productSeed,
+    id: Date.now() + index,
+  };
+
+  addProduct(newProduct);
+  evaluateWarranty(newProduct);
+});
 }
 
 export function clearAllData() {

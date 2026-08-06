@@ -26,7 +26,7 @@ export type temporalThresholdsT = Record<
 >;
 
 export type warrantyT = {
-  id: string;
+  id: number;
 
   warrantyTerm: warrantyTermT | warrantyTermLabelT;
 

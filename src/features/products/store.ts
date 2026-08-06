@@ -11,11 +11,11 @@ type productStoreT = {
   addProduct: (product: productT) => void;
 
   updateProduct: (
-    id: string,
+    id: number,
     data: Partial<productT>
   ) => void;
 
-  deleteProduct: (id: string) => void;
+  deleteProduct: (id: number) => void;
 };
 
 export const useProductStore = create<productStoreT>((set) => ({

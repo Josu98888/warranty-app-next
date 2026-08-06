@@ -27,7 +27,7 @@ export default function ProductsTable({
 
   const handleDelete = async (
 
-    id: string | undefined,
+    id: number | undefined,
 
     name: string,
 
