@@ -4,8 +4,10 @@ import ProductFilters from "@/features/products/components/ProductFilters";
 import ProductDataActions from "@/features/products/components/ProductDataActions";
 import ProductsTable from "@/features/products/components/ProductsTable";
 import { seedTestData, clearAllData } from "@/features/products/utils/seedData";
+import { useLoadProducts } from "@/features/products/hooks/useLoadProducts";
 
 export default function ProductsPage() {
+  useLoadProducts();
   const {
     filteredProductsWithWarranty,
     searchQuery,

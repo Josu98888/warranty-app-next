@@ -9,7 +9,7 @@ import { ROUTES } from "@/shared/utils/route";
 import { useProductStore } from "@/features/products/store";
 import { useWarrantyStore } from "@/features/warranty/store/store";
 import { productRepository } from "@/features/products/repositories/productRepository";
-
+import Image from "next/image";
 interface ProductsTableProps {
   productsWithWarranty: ProductRow[];
   totalProductCount: number;
@@ -260,9 +260,11 @@ await productRepository.delete(id);
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <img
+                      <Image
                         src={productRow.receipt}
                         alt={`Comprobante de ${productRow.name}`}
+                        width={80}
+                  height={80}
                         className="h-10 w-10 object-cover rounded border cursor-pointer hover:opacity-80"
                       />
                     </a>

@@ -5,6 +5,7 @@ import { useReminderSettings } from "@/features/warranty/hooks/useReminderSettin
 import { useProductFilters } from "@/features/products/hooks/useProducts";
 import { getWarrantyStatus } from "@/features/warranty/utils/warrantyStatus";
 import { useReminderStore } from "@/features/warranty/store/reminderStore";
+import Image from "next/image";
 import toast from "react-hot-toast";
 
 export default function RemindersView() {
@@ -139,9 +140,11 @@ export default function RemindersView() {
 
               <p className="text-sm">{status?.label}</p>
               {p.receipt && (
-                <img
+                <Image
                   src={p.receipt}
                   alt="Comprobante"
+                  width={80}
+                  height={80}
                   className="mt-2 h-20 rounded border"
                 />
               )}

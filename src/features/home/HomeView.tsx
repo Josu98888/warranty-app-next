@@ -7,6 +7,7 @@ import ProductDataActions from "@/features/products/components/ProductDataAction
 import ProductsTable from "@/features/products/components/ProductsTable";
 import { seedTestData, clearAllData } from "@/features/products/utils/seedData";
 import SummaryCards from "@/features/home/SummaryCards";
+import { useLoadProducts } from "@/features/products/hooks/useLoadProducts";
 
 export default function HomeView() {
   return (
@@ -33,8 +34,10 @@ function HomeContent() {
   } = useProductFilters(initialSearchQuery);
 
   useEffect(() => {
-    setSearchQuery(initialSearchQuery);
-  }, [initialSearchQuery]);
+  setSearchQuery(initialSearchQuery);
+}, [initialSearchQuery, setSearchQuery]);
+useLoadProducts();
+  
 
   const hasProducts = totalProductCount > 0;
 

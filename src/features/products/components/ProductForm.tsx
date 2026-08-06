@@ -1,28 +1,42 @@
 "use client";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type productFormDataT } from "../schema";
 import { useProductStore } from "../store";
 import { productRepository } from "../repositories/productRepository";
-
+import { useWarrantyStore } from "@/features/warranty/store/store";
 import toast from "react-hot-toast";
+import Image from "next/image";
 import { uploadReceipt } from "@/lib/uploadReceipt";
 import { CATEGORIES } from "../categories";
-
+import { mapProduct } from "../utils/mapProduct";
 export function ProductForm() {
   const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<productFormDataT>({
-    resolver: zodResolver(productSchema),
-  });
+  register,
+  handleSubmit,
+  control,
+  setValue,
+  reset,
+  formState: { errors },
+} = useForm<productFormDataT>({
+  resolver: zodResolver(productSchema),
+});
+ const selectedCategory = useWatch({
+  control,
+  name: "category",
+});
+
+const receiptUrl = useWatch({
+  control,
+  name: "receipt",
+});
   const setProducts = useProductStore(
     (state) => state.setProducts
   );
+  const evaluateWarranty = useWarrantyStore(
+    (state) => state.evaluateWarranty
+  );
+
   const onSubmit = async (data: productFormDataT) => {
     try {
       await productRepository.create(data);
@@ -30,18 +44,13 @@ export function ProductForm() {
       const products =
         await productRepository.getAll();
 
-      setProducts(
-        products.map((p) => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          importance: p.importance,
-          category: p.category,
-          purchaseDate: p.purchase_date,
-          durationMonths: p.duration_months,
-          receipt: p.receipt
-        }))
-      );
+      const mappedProducts = products.map(mapProduct);
+
+      setProducts(mappedProducts);
+
+      mappedProducts.forEach((product) => {
+        evaluateWarranty(product);
+      });
 
       reset();
 
@@ -89,7 +98,7 @@ export function ProductForm() {
             <label
               key={category.value}
               className={`flex flex-col items-center gap-1 p-2 border rounded cursor-pointer text-xs font-semibold
-                                ${watch("category") === category.value ? "border-blue-600 bg-blue-300" : "border-slate-600"}`}
+                                ${selectedCategory === category.value ? "border-blue-600 bg-blue-300" : "border-slate-600"}`}
             >
               <input
                 type="radio"
@@ -190,28 +199,31 @@ export function ProductForm() {
           type="file"
           accept="image/*,application/pdf"
           onChange={async (e) => {
-  const file = e.target.files?.[0];
+            const file = e.target.files?.[0];
 
-  if (!file) return;
+            if (!file) return;
 
-  try {
-    const publicUrl = await uploadReceipt(file);
+            try {
+              const publicUrl = await uploadReceipt(file);
 
-    setValue("receipt", publicUrl);
-    toast.success("Comprobante subido");
-  } catch (error) {
-    console.error(error);
+              setValue("receipt", publicUrl);
+              toast.success("Comprobante subido");
+            } catch (error) {
+              console.error(error);
 
-    toast.error("Error al subir comprobante");
-  }
-}}
+              toast.error("Error al subir comprobante");
+            }
+          }}
           className="mt-1 w-full border rounded px-3 py-2 text-sm"
         />
-        {watch("receipt") && (
-          <img
-            src={watch("receipt")}
-            alt="Vista previa del comprobante"
-            className="mt-2 h-16 rounded border"
+        {receiptUrl && (
+  <Image
+    src={receiptUrl}
+    alt="Vista previa del comprobante"
+    width={64}
+    height={64}
+    className="mt-2 h-16 w-16 rounded border"
+    
           />
         )}
       </div>
@@ -224,5 +236,6 @@ export function ProductForm() {
       </button>
     </form>
   );
+
 }
 
