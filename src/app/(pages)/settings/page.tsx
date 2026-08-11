@@ -1,3 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Configuración | Garantías de productos",
+  description: "Ajustá las preferencias de la aplicación.",
+  openGraph: {
+    title: "Configuración | Garantías de productos",
+    description: "Ajustá las preferencias de la aplicación.",
+    type: "website",
+    locale: "es_AR",
+    siteName: "Warranty Manager",
+  },
+};
+
 export default function SettingsPage() {
   return (
     <main className="max-w-2xl mx-auto">
