@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import {
   House,
   Package,
@@ -69,7 +70,7 @@ export default function Sidebar() {
             />
 
             <SidebarItem
-              to={ROUTES.HOME}
+              to={ROUTES.PRODUCTS}
               icon={Package}
               label="Productos"
               onClick={closeMenu}
@@ -89,13 +90,14 @@ export default function Sidebar() {
               onClick={closeMenu}
             />
 
-            <button
+            <Link
+              href={ROUTES.SETTINGS}
               onClick={closeMenu}
               className="flex items-center gap-3 rounded-lg px-4 py-3 text-slate-200 hover:bg-blue-800 transition-colors"
             >
               <Settings size={20} />
               Configuración
-            </button>
+            </Link>
           </nav>
         </div>
 
