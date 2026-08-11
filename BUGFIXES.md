@@ -16,8 +16,8 @@ Este proyecto usa Next.js (App Router), no react-router, por lo que el equivalen
 **Solución propuesta:**
 - Crear una ruta específica en `ROUTES` para Productos (ej: `ROUTES.PRODUCTS`) y asignarla a su `SidebarItem`.
 - Cambiar el botón de Configuración por un `SidebarItem` con su respectiva ruta, o agregarle la lógica para abrir un modal de configuración.
-**Solución aplicada:**
-Se agregó `ROUTES.PRODUCTS` (`/products`) y se creó la página correspondiente en `src/app/(pages)/products/page.tsx`, mostrando la tabla de productos por separado del dashboard. El ítem "Productos" del Sidebar ahora apunta ahí. También se agregó `ROUTES.SETTINGS` (`/settings`) con una página placeholder (`src/app/(pages)/settings/page.tsx`), y el botón de Configuración se reemplazó por un `SidebarItem` que navega a esa ruta.
+**Solución aplicada (parcial, corregida 2026-08-10):**
+Se creó `src/app/(pages)/products/page.tsx` y `src/app/(pages)/settings/page.tsx` en su momento, pero la parte de `ROUTES`/`Sidebar` que describe este ítem nunca se aplicó de verdad: `ROUTES.PRODUCTS`/`ROUTES.SETTINGS` no existían, el ítem "Productos" seguía apuntando a `ROUTES.HOME` y el botón de "Configuración" seguía siendo un `<button>` sin navegación — quedó documentado como resuelto sin estarlo. **Resuelto de verdad** en el commit `b7c60cc` (2026-08-10): se agregaron `ROUTES.PRODUCTS`/`ROUTES.SETTINGS` (ver bug #9) y `Sidebar.tsx` ahora apunta "Productos" a `ROUTES.PRODUCTS` y "Configuración" es un `Link` a `ROUTES.SETTINGS`.
 
 ## 3. Buscador inactivo en el Topbar
 **Descripción:** El input de búsqueda en la cabecera es puramente visual (UI estática). No está conectado a ningún estado ni maneja eventos.
@@ -54,9 +54,12 @@ Ambas funciones ya existían en sus respectivos stores (productos y garantías),
 Toda la app usa `react-hot-toast` (`toast.success(...)`) para notificar al agregar, editar o eliminar productos, pero el componente `<Toaster />` que renderiza esas notificaciones nunca se montaba en ningún lado. Resultado: las notificaciones nunca se veían en pantalla.
 **Solución:** se agregó `<Toaster />` en `layout.tsx`.
 
-## 9.Rutas relativas rotas en ROUTES
-Los valores de `ROUTES` (excepto `HOME`) no tenían `/` inicial, por lo que los links del Sidebar/Topbar se resolvían de forma relativa a la página actual en vez de ser absolutos. Ejemplo: desde `/reminders`, un link a `record-product` navegaba a `/reminders/record-product` (ruta inexistente) en vez de `/record-product`.
-**Solución:** se agregó `/` inicial a cada valor de `ROUTES`.
+## 9. Rutas relativas rotas en ROUTES
+Los valores de `ROUTES` (excepto `HOME`) no tenían `/` inicial, por lo que los links del Sidebar/Topbar se resolvían de forma relativa a la página actual en vez de ser absolutos.
+
+**Solución (marcada aplicada antes de tiempo, corregida 2026-08-10):** este ítem se marcó como resuelto en una auditoría anterior, pero el `/` inicial nunca se agregó al código — solo quedó anotado. El bug siguió siendo reproducible: como `Sidebar`/`Topbar` viven en `layout.tsx` y se renderizan en todas las páginas, un `href` relativo depende de la página actual. Para rutas de un solo segmento (`/`, `/products`, `/reminders`, etc.) da la casualidad de que resuelve bien, pero desde `/edit-warranty/[id]` (la única ruta anidada) los links a "Agregar producto" o "Recordatorios" navegaban a `/edit-warranty/record-product` o `/edit-warranty/reminders` — ambos 404. También rompía el resaltado de "página activa" en `SidebarItem` (`pathname === to` nunca daba `true` porque `pathname` es absoluto y `to` no lo era).
+
+**Resuelto de verdad** en el commit `4e9cfad` (2026-08-10): se agregó `/` inicial a `RECORD_PRODUCT`, `EDIT_WARRANTY` y `REMINDERS` en `src/shared/utils/route.ts`.
 
 ## 10. Lógica de negocio mezclada dentro de un hook de filtros
 **Descripción:** El hook `useProductFilters` no solo filtraba productos por búsqueda y categoría, sino que además:
@@ -115,4 +118,32 @@ Se creó `ProductDataActions.tsx`, un componente independiente que recibe `hasPr
 - Eliminar la suscripción directa al store en la página y derivar todo desde el valor que ya expone el hook.
 
 **Solución aplicada:**
-Se eliminó el `useProductStore` de `ProductsPage`. Ahora `hasProducts` se deriva directamente de `totalProductCount` (`totalProductCount > 0`), que ya viene de `useProductFilters`, evitando la doble suscripción al store desde el mismo componente. 
+Se eliminó el `useProductStore` de `ProductsPage`. Ahora `hasProducts` se deriva directamente de `totalProductCount` (`totalProductCount > 0`), que ya viene de `useProductFilters`, evitando la doble suscripción al store desde el mismo componente.
+
+---
+
+## 15. Pérdida de metadata en `/` y `/reminders` durante el merge de `feature/email-reminders`
+
+**Descripción:** La Fase 4 había dejado `src/app/page.tsx` y `src/app/(pages)/reminders/page.tsx` como Server Components delgados con `export const metadata` completo, renderizando una vista `"use client"` separada (`HomeView`/`RemindersView`). Al mergear `feature/email-reminders` a `main`, la resolución del conflicto en esos dos archivos se quedó con la versión vieja (monolítica, `"use client"` en el propio `page.tsx`, con toda la lógica adentro), que no puede exportar `metadata` — Next.js lo rechaza en build para Client Components. El `export const metadata` directamente desapareció de esas dos rutas, dejando solo un `import type { Metadata }` sin usar, y las páginas se quedaron sin `<title>`, sin `description` ni Open Graph. El commit `973d898 fix: add missing use client directives` solo tapó el síntoma (agregó `"use client"` para que compilara) sin notar que la metadata ya se había perdido.
+
+**Solución aplicada (2026-08-01, PR #8 `refactor/page-server`):** se volvió a dividir cada ruta en un Server Component (`page.tsx`, exporta `metadata`) + una vista `"use client"` (`HomeView.tsx`, `RemindersView.tsx`), commits `d531d2a`, `ea9e441`, `cd0ca45`, `f9683ce`, mergeados en `7b305e5`. Mismo patrón se aplicó también a `/products` y `/edit-warranty/[id]` cuando se crearon.
+
+## 16. Email de recordatorio con datos hardcodeados en vez de reales
+
+**Descripción:** El botón de "enviar" recordatorio en la UI (`RemindersPage`, antes de la refactorización a hooks) llamaba a `emailjs.send(...)` con `product_name: "Producto de prueba"` y `expiry_date: "01/09/2026"` fijos — a pesar de que el componente ya calculaba los recordatorios reales unas líneas arriba (`checkReminders(warranties, settings)`), el envío ignoraba ese resultado y mandaba siempre el mismo email de prueba, sin importar qué garantía estuviera por vencer.
+
+**Solución aplicada (2026-08-01, PR #7 `refactor/custom-email`):** el envío real de recordatorios se resolvió del lado del servidor en `scripts/send-reminders.ts` (corrido por el cron de GitHub Actions), que arma el asunto y el cuerpo del email con `product.name` y la fecha de vencimiento real de cada producto — commit `0515853 feat(warranty): send reminder email with dynamic product data`, mergeado en `6dfc2ba`. El hook `useReminderEmail` (envío desde el navegador vía EmailJS) quedó sin usar en ningún lado — ver nota de limpieza pendiente en `.env.example`.
+
+## 17. Duplicación de estado entre Zustand (localStorage) y Supabase
+
+**Descripción:** Al integrar Supabase, tanto los productos como la configuración de recordatorios quedaron con dos copias persistentes independientes: el store de Zustand (con `persist`, en localStorage) y la tabla correspondiente en Supabase, sin ningún mecanismo que las mantuviera sincronizadas.
+
+**Productos — resuelto (2026-08-05, commits `4c1ff3c`, `d5fa346`, `7e35acf`):** se le sacó el `persist` a `useProductStore` — ya no vive en localStorage. Supabase es la única fuente de verdad; `useLoadProducts()` hace `productRepository.getAll()` al montar y llena el store (reemplazo completo, no merge), y `ProductForm.onSubmit` vuelve a pedir la lista completa después de insertar en vez de asumir el resultado localmente.
+
+**Configuración de recordatorios — parcialmente resuelto, no bloqueante:** `useReminderStore` (settings) todavía usa `persist` a localStorage, y en paralelo `useReminderSettings` hace su propio fetch/update contra `supabase.from("settings")`. En el camino feliz, Supabase gana (su `useEffect` sobreescribe el `useState` sembrado desde Zustand apenas carga), pero si la carga de Supabase falla, el componente se queda en silencio con los valores de localStorage sin avisar al usuario, y el store de Zustand solo se actualiza cuando el usuario guarda con éxito — no cuando Supabase cambia por otra vía. Queda pendiente para una fase futura decidir una única fuente de verdad para la configuración, igual que se hizo con productos.
+
+## 18. Heading `<h1>` duplicado en `RemindersView`
+
+**Descripción:** `RemindersView.tsx` tenía su propio `<h1>Recordatorios</h1>`, pero `Topbar` (montado en `layout.tsx`) ya renderiza un `<h1>Mis Garantías</h1>` en todas las páginas — dos `<h1>` por carga en `/reminders`. Ya se había corregido una vez en Fase 4 (bajado a `<h2>`), pero volvió a aparecer como `<h1>` cuando `RemindersView` se reescribió durante la integración de Supabase/email, y nadie lo notó ni lo documentó en ese momento. De paso, el label "Correo de notificación" del formulario de configuración tampoco estaba asociado a su `<input type="email">` (sin `id`/`htmlFor`).
+
+**Solución aplicada:** commit `a373df0` (2026-08-10) — `<h1>` vuelve a `<h2>`, y se agregó el `id`/`htmlFor` faltante entre el label y el input de email.

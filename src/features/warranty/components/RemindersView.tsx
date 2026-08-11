@@ -35,7 +35,7 @@ export default function RemindersView() {
 
   return (
     <section className="p-6">
-      <h1 className="text-2xl font-bold mb-2">Recordatorios</h1>
+      <h2 className="text-2xl font-bold mb-2">Recordatorios</h2>
 
       <p className="text-slate-500 text-sm mb-6">
         Garantías próximas a vencer o ya vencidas
@@ -45,9 +45,10 @@ export default function RemindersView() {
       <div className="border rounded-lg p-4 mb-6">
         <h2 className="font-semibold mb-4">Configuración de recordatorios</h2>
 
-        <label className="block mb-2">Correo de notificación</label>
+        <label htmlFor="reminder-email" className="block mb-2">Correo de notificación</label>
 
         <input
+          id="reminder-email"
           type="email"
           placeholder="correo@ejemplo.com"
           value={email}

@@ -27,13 +27,24 @@ date-fns · Supabase (Postgres + Storage) · Nodemailer · GitHub Actions
   vencer / vencida).
 - Filtros por categoría y búsqueda por nombre (con sincronización vía `?q=` en la URL).
 - Adjunto de comprobante de compra, subido a Supabase Storage.
-- Configuración de recordatorios por email (30/7/1 días antes del vencimiento y al vencer),
-  guardada en Supabase.
-- Envío automático de esos recordatorios por correo vía un cron de GitHub Actions
-  (`.github/workflows/reminders.yml`), sin depender de que la app esté abierta en un
-  navegador.
 - Metadata y Open Graph por página, `robots.txt` y `sitemap.xml` generados con las
   convenciones nativas de Next.js.
+
+## Funcionalidad extra
+
+El proyecto original (`warranty-app`) no tenía ninguna forma de avisar cuándo una
+garantía estaba por vencer más allá de mirar la tabla. Como funcionalidad adicional
+(opcional según la consigna), se sumó un sistema de **recordatorios automáticos por
+email**, respetando el estilo visual del resto de la app (mismos componentes, misma
+paleta de Tailwind):
+
+- Configuración de recordatorios por email (30/7/1 días antes del vencimiento y al
+  vencer) en `/reminders`, guardada en Supabase.
+- Envío automático de esos recordatorios por correo vía un cron de GitHub Actions
+  (`.github/workflows/reminders.yml`) que corre `scripts/send-reminders.ts` todos los
+  días, sin depender de que la app esté abierta en un navegador.
+- Registro de envíos en la tabla `reminder_logs` de Supabase para no mandar el mismo
+  recordatorio dos veces.
 
 ## Rutas
 
