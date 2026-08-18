@@ -10,9 +10,9 @@ Migración a Next.js 16 (App Router + TypeScript) de [warranty-app](https://gith
 
 | Integrante | Área principal |
 |---|---|
-| Sofía Zilijosky | Scaffold inicial, optimización de imágenes/fuentes, SEO y metadata |
+| Sofía Zilijosky | Optimización de imágenes/fuentes, SEO y metadata |
 | Daina Paucar | Integración con Supabase (DB + Storage) y recordatorios por email |
-| Josué Aquino | Refactors de arquitectura (Server Components, stores, props) |
+| Josué Aquino | Scaffold inicial, migración a next y refactors de arquitectura (Server Components, stores, props) |
 | Luz Mendoza Alcantara | Rutas nuevas (productos, editar garantía, configuración), fixes de UI |
 
 ## Tecnologías
